@@ -9,12 +9,15 @@
 
 ### concept:
 old school arcade thema 
-reaction timing bubble shooter
+
+* reaction timing bubble shooter
+
 waar je bubbles met dezelfde kleur moet raken om ervoor te zorgen dat het niet naar het midden komt en af gaat
 
 ### controller:
 
 je hebt 1 joystick om de turret rond te bewegen en nog 1 knop om te schieten en een start stop knop
+
 rechts de joystick links de knop en boven nog een knop
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -24,6 +27,9 @@ Marcos Martins Carvalho
 Charoo van Megen
 Huseyin Saritas
 Isaiah Koroma
+Marcus Kymmell
+Deon Telman
+Finn 
 
 
 
