@@ -3,26 +3,19 @@ using UnityEngine;
 public class AmmoRing : MonoBehaviour
 {
     [Header("Ring")]
-    [SerializeField] private int ballCount = 18;
-    [SerializeField] private float radius = 2.8f;
-    [SerializeField] private float ballSize = 1f;
+    [SerializeField] private BallSpawner spawner;
+    [SerializeField] private float radius = 0.9f;
+    [SerializeField] private float ballSize = 0.6f;
 
     [Header("Spinning")]
-    [SerializeField] private float rotationSpeed = 30f;
+    [SerializeField] private float rotationSpeed = 40f;
     [SerializeField] private bool spinClockwise;
 
     [Header("Refill")]
     [SerializeField] private float refillDelay = 0.5f;
 
-    [Header("Ball sprites (same order as AmmoColor)")]
-    [SerializeField] private Sprite[] ballSprites = new Sprite[6];
 
     private float refillTimer;
-
-    public float Radius
-    {
-        get { return radius; }
-    }
 
     private void Start()
     {
@@ -58,6 +51,16 @@ public class AmmoRing : MonoBehaviour
         }
     }
 
+    private int BallsThatFit()
+    {
+        return Mathf.Max(6, Mathf.CeilToInt(2f * Mathf.PI * radius / ballSize));
+    }
+
+    public bool IsRingBall(Transform ball)
+    {
+        return ball.parent == transform;
+    }
+
     public int BallsLeft()
     {
         int count = 0;
@@ -75,20 +78,21 @@ public class AmmoRing : MonoBehaviour
 
     private void BuildRing()
     {
-        if (ballSprites.Length == 0 || ballSprites[0] == null)
+        if (spawner == null)
         {
-            Debug.LogError("AmmoRing: assign the ball sprites in the Inspector.", this);
+            Debug.LogError("AmmoRing: assign the Ball Spawner in the Inspector.", this);
             enabled = false;
             return;
         }
 
+        int ballCount = BallsThatFit();
         float angleStep = 360f / ballCount;
 
         for (int i = 0; i < ballCount; i++)
         {
             float angle = i * angleStep;
 
-            AmmoColor color = (AmmoColor)(i % ballSprites.Length);
+            AmmoColor color = (AmmoColor)(i % spawner.ColorCount);
             AmmoBall ball = CreateBall(color, transform);
 
             ball.transform.localPosition = PositionOnRing(angle);
@@ -97,26 +101,7 @@ public class AmmoRing : MonoBehaviour
 
     public AmmoBall CreateBall(AmmoColor color, Transform parent)
     {
-        int spriteIndex = (int)color;
-        if (spriteIndex >= ballSprites.Length)
-        {
-            Debug.LogError("AmmoRing: no sprite for colour " + color, this);
-            return null;
-        }
-
-        GameObject ballObject = new GameObject("Ball");
-        ballObject.transform.SetParent(parent);
-        ballObject.transform.rotation = Quaternion.identity;
-        ballObject.transform.localScale = Vector3.one * ballSize;
-
-        ballObject.AddComponent<SpriteRenderer>();
-
-        AmmoBall ball = ballObject.AddComponent<AmmoBall>();
-        ball.SetUp(color, ballSprites[spriteIndex]);
-
-        ballObject.AddComponent<CircleCollider2D>();
-
-        return ball;
+        return spawner.Spawn(color, parent, ballSize);
     }
 
     private Vector3 PositionOnRing(float angleInDegrees)

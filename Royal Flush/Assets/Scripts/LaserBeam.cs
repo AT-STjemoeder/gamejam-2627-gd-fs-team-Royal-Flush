@@ -47,7 +47,6 @@ public class LaserBeam : MonoBehaviour
         float spriteSize = beamSprite.bounds.size.x;
 
         beam.localScale = new Vector3(thickness / spriteSize, length / spriteSize, 1f);
-
         beam.localPosition = new Vector3(0f, length * 0.5f, 0f);
 
         beam.gameObject.SetActive(true);

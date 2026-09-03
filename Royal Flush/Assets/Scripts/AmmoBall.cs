@@ -5,9 +5,7 @@ public enum AmmoColor
     Ember,
     Gold,
     Forest,
-    Blue,
-    Violet,
-    Bone
+    Blue
 }
 
 [RequireComponent(typeof(SpriteRenderer))]
@@ -27,7 +25,7 @@ public class AmmoBall : MonoBehaviour
         GetComponent<SpriteRenderer>().sprite = sprite;
 
         gameObject.tag = GetTagFor(newColor);
-        gameObject.name = "AmmoBall_" + newColor;
+        gameObject.name = "Ball_" + newColor;
     }
 
     public static string GetTagFor(AmmoColor color)

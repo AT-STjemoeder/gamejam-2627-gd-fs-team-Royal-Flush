@@ -3,55 +3,53 @@ using UnityEngine.InputSystem;
 
 public class Turret : MonoBehaviour
 {
-    [Header("Head")]
+    [Header("Parts")]
     [SerializeField] private Transform head;
-    [SerializeField] private float turnSpeed = 540f;
-
-    [Header("Laser")]
     [SerializeField] private LaserBeam laserBeam;
+    [SerializeField] private AmmoRing ammoRing;
+    [SerializeField] private BallWall ballWall;
+
+    [Header("Shooting")]
     [SerializeField] private float laserRange = 12f;
     [SerializeField] private float shotCooldown = 0.25f;
-
-    [Header("Knocked ball")]
     [SerializeField] private float ballSpeed = 9f;
-
-    [Header("Gamepad")]
-    [SerializeField] private float stickDeadZone = 0.2f;
 
     private float cooldownLeft;
 
+    private void Awake()
+    {
+        if (head == null || laserBeam == null || ammoRing == null || ballWall == null)
+        {
+            Debug.LogError("Turret is missing something in the Inspector", this);
+        }
+    }
+
     private void Update()
     {
-        if (head == null)
+        if (ballWall.IsGameOver)
         {
             return;
         }
 
-        AimHead();
+        Aim();
 
         cooldownLeft -= Time.deltaTime;
 
         if (ShootPressed() && cooldownLeft <= 0f)
         {
-            FireLaser();
+            Shoot();
             cooldownLeft = shotCooldown;
         }
     }
 
-    private void AimHead()
+    private void Aim()
     {
         Vector2 aim = GetAimDirection();
-        if (aim.sqrMagnitude < 0.001f)
+
+        if (aim.magnitude > 0.1f)
         {
-            return;
+            head.up = aim;
         }
-
-        float targetAngle = (Mathf.Atan2(aim.y, aim.x) * Mathf.Rad2Deg) - 90f;
-
-        float newAngle = Mathf.MoveTowardsAngle(
-            head.eulerAngles.z, targetAngle, turnSpeed * Time.deltaTime);
-
-        head.rotation = Quaternion.Euler(0f, 0f, newAngle);
     }
 
     private Vector2 GetAimDirection()
@@ -59,27 +57,22 @@ public class Turret : MonoBehaviour
         if (Gamepad.current != null)
         {
             Vector2 stick = Gamepad.current.rightStick.ReadValue();
-            if (stick.magnitude > stickDeadZone)
+
+            if (stick.magnitude > 0.2f)
             {
                 return stick;
             }
         }
 
-        if (Mouse.current == null || Camera.main == null)
+        if (Mouse.current == null)
         {
             return Vector2.zero;
         }
 
-        Vector2 mouseScreenPosition = Mouse.current.position.ReadValue();
+        Vector2 mousePixels = Mouse.current.position.ReadValue();
+        Vector3 mouseInWorld = Camera.main.ScreenToWorldPoint(mousePixels);
 
-        Vector3 viewportPoint = new Vector3(
-            mouseScreenPosition.x / Screen.width,
-            mouseScreenPosition.y / Screen.height,
-            0f);
-
-        Vector3 mouseWorldPosition = Camera.main.ViewportToWorldPoint(viewportPoint);
-
-        return (Vector2)(mouseWorldPosition - head.position);
+        return mouseInWorld - head.position;
     }
 
     private bool ShootPressed()
@@ -102,10 +95,9 @@ public class Turret : MonoBehaviour
         return false;
     }
 
-    private void FireLaser()
+    private void Shoot()
     {
-        Vector2 direction = head.up;
-        RaycastHit2D hit = Physics2D.Raycast(head.position, direction, laserRange);
+        RaycastHit2D hit = Physics2D.Raycast(head.position, head.up, laserRange);
 
         float beamLength = laserRange;
 
@@ -114,35 +106,23 @@ public class Turret : MonoBehaviour
             beamLength = hit.distance;
 
             AmmoBall ball = hit.collider.GetComponent<AmmoBall>();
-            if (ball != null)
+
+            if (ball != null && ammoRing.IsRingBall(ball.transform))
             {
-                KnockBallLoose(ball, direction);
+                Launch(ball);
             }
         }
 
-        if (laserBeam != null)
-        {
-            laserBeam.Show(beamLength);
-        }
+        laserBeam.Show(beamLength);
     }
 
-    private void KnockBallLoose(AmmoBall ball, Vector2 direction)
+    private void Launch(AmmoBall ball)
     {
         ball.transform.SetParent(null);
+        ball.transform.localScale = Vector3.one * ballWall.BallSize;
         ball.GetComponent<CircleCollider2D>().enabled = false;
 
         Projectile projectile = ball.gameObject.AddComponent<Projectile>();
-        projectile.Launch(direction, ballSpeed);
-    }
-
-    private void OnDrawGizmosSelected()
-    {
-        if (head == null)
-        {
-            return;
-        }
-
-        Gizmos.color = Color.red;
-        Gizmos.DrawLine(head.position, head.position + (head.up * laserRange));
+        projectile.Launch(head.up, ballSpeed, ballWall);
     }
 }
