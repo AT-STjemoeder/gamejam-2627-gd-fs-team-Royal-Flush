@@ -30,7 +30,7 @@
 * Isaiah Koroma
 * Marcus Kymmell
 * Deon Telman
-* Finn Tervoort
+* Fynn Tervoort
 * Ian Fa-Si-Oen
 * Kyano Bakker
 
