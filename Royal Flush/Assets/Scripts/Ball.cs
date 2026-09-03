@@ -15,7 +15,7 @@ public class Ball : MonoBehaviour
     [SerializeField] private BallColor ballColor;
     [SerializeField] private bool Bullet;
     [SerializeField] private bool ChainReaction = true;
-    [SerializeField] private float NeighborRadius = 1.1f;
+    [SerializeField] private float NeighborRadius = 0.6f;
     [SerializeField] private float ChainDelay = 0.05f;
 
     private bool ClearStarted;
