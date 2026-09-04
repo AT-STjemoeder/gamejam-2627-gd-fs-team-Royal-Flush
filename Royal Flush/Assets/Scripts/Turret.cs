@@ -9,6 +9,9 @@ public class Turret : MonoBehaviour
     [SerializeField] private AmmoRing ammoRing;
     [SerializeField] private BallWall ballWall;
 
+    [Header("Aiming")]
+    [SerializeField] private float turnSpeed = 110f;
+
     [Header("Shooting")]
     [SerializeField] private float laserRange = 12f;
     [SerializeField] private float shotCooldown = 0.25f;
@@ -33,55 +36,64 @@ public class Turret : MonoBehaviour
 
         Aim();
 
+        RaycastHit2D hit = Physics2D.Raycast(head.position, head.up, laserRange);
+
+        float beamLength = laserRange;
+
+        if (hit.collider != null)
+        {
+            beamLength = hit.distance;
+        }
+
+        laserBeam.SetLength(beamLength);
+
         cooldownLeft -= Time.deltaTime;
 
         if (ShootPressed() && cooldownLeft <= 0f)
         {
-            Shoot();
+            Shoot(hit);
             cooldownLeft = shotCooldown;
         }
     }
 
     private void Aim()
     {
-        Vector2 aim = GetAimDirection();
+        float turn = GetTurnInput();
 
-        if (aim.magnitude > 0.1f)
+        if (turn != 0f)
         {
-            head.up = aim;
+            head.Rotate(0f, 0f, turn * turnSpeed * Time.deltaTime);
         }
     }
 
-    private Vector2 GetAimDirection()
+    private float GetTurnInput()
     {
-        if (Gamepad.current != null)
-        {
-            Vector2 stick = Gamepad.current.rightStick.ReadValue();
+        float turn = 0f;
 
-            if (stick.magnitude > 0.2f)
+        if (Keyboard.current != null)
+        {
+            if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed)
             {
-                return stick;
+                turn = turn + 1f;
+            }
+
+            if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed)
+            {
+                turn = turn - 1f;
             }
         }
 
-        if (Mouse.current == null)
+        if (Gamepad.current != null)
         {
-            return Vector2.zero;
+            turn = turn - Gamepad.current.leftStick.x.ReadValue();
+            turn = turn - Gamepad.current.dpad.x.ReadValue();
         }
 
-        Vector2 mousePixels = Mouse.current.position.ReadValue();
-        Vector3 mouseInWorld = Camera.main.ScreenToWorldPoint(mousePixels);
-
-        return mouseInWorld - head.position;
+        return Mathf.Clamp(turn, -1f, 1f);
     }
 
     private bool ShootPressed()
     {
-        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
-        {
-            return true;
-        }
-
         if (Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame)
         {
             return true;
@@ -95,25 +107,21 @@ public class Turret : MonoBehaviour
         return false;
     }
 
-    private void Shoot()
+    private void Shoot(RaycastHit2D hit)
     {
-        RaycastHit2D hit = Physics2D.Raycast(head.position, head.up, laserRange);
+        laserBeam.Flash();
 
-        float beamLength = laserRange;
-
-        if (hit.collider != null)
+        if (hit.collider == null)
         {
-            beamLength = hit.distance;
-
-            AmmoBall ball = hit.collider.GetComponent<AmmoBall>();
-
-            if (ball != null && ammoRing.IsRingBall(ball.transform))
-            {
-                Launch(ball);
-            }
+            return;
         }
 
-        laserBeam.Show(beamLength);
+        AmmoBall ball = hit.collider.GetComponent<AmmoBall>();
+
+        if (ball != null && ammoRing.IsRingBall(ball.transform))
+        {
+            Launch(ball);
+        }
     }
 
     private void Launch(AmmoBall ball)

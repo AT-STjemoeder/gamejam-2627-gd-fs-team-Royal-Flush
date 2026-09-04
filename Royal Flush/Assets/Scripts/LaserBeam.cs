@@ -3,12 +3,15 @@ using UnityEngine;
 public class LaserBeam : MonoBehaviour
 {
     [SerializeField] private Sprite beamSprite;
-    [SerializeField] private float thickness = 0.15f;
-    [SerializeField] private float visibleTime = 0.08f;
+    [SerializeField] private float thickness = 0.06f;
+    [SerializeField] private float flashTime = 0.08f;
+    [SerializeField] private Color aimColor = new Color(1f, 0.4f, 0.3f, 0.3f);
+    [SerializeField] private Color fireColor = new Color(1f, 1f, 1f, 1f);
     [SerializeField] private int sortingOrder = 3;
 
     private Transform beam;
-    private float timeLeft;
+    private SpriteRenderer beamRenderer;
+    private float flashLeft;
 
     private void Awake()
     {
@@ -19,25 +22,27 @@ public class LaserBeam : MonoBehaviour
         }
 
         CreateBeam();
-        beam.gameObject.SetActive(false);
     }
 
     private void Update()
     {
-        if (beam == null || !beam.gameObject.activeSelf)
+        if (beamRenderer == null)
         {
             return;
         }
 
-        timeLeft -= Time.deltaTime;
-
-        if (timeLeft <= 0f)
+        if (flashLeft > 0f)
         {
-            beam.gameObject.SetActive(false);
+            flashLeft -= Time.deltaTime;
+            beamRenderer.color = fireColor;
+        }
+        else
+        {
+            beamRenderer.color = aimColor;
         }
     }
 
-    public void Show(float length)
+    public void SetLength(float length)
     {
         if (beam == null)
         {
@@ -48,9 +53,11 @@ public class LaserBeam : MonoBehaviour
 
         beam.localScale = new Vector3(thickness / spriteSize, length / spriteSize, 1f);
         beam.localPosition = new Vector3(0f, length * 0.5f, 0f);
+    }
 
-        beam.gameObject.SetActive(true);
-        timeLeft = visibleTime;
+    public void Flash()
+    {
+        flashLeft = flashTime;
     }
 
     private void CreateBeam()
@@ -59,9 +66,10 @@ public class LaserBeam : MonoBehaviour
         beamObject.transform.SetParent(transform);
         beamObject.transform.localRotation = Quaternion.identity;
 
-        SpriteRenderer spriteRenderer = beamObject.AddComponent<SpriteRenderer>();
-        spriteRenderer.sprite = beamSprite;
-        spriteRenderer.sortingOrder = sortingOrder;
+        beamRenderer = beamObject.AddComponent<SpriteRenderer>();
+        beamRenderer.sprite = beamSprite;
+        beamRenderer.sortingOrder = sortingOrder;
+        beamRenderer.color = aimColor;
 
         beam = beamObject.transform;
     }

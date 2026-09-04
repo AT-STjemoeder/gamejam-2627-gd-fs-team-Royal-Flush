@@ -169,6 +169,7 @@ MonoBehaviour:
   laserBeam: {fileID: 1500008}
   ammoRing: {fileID: 1500013}
   ballWall: {fileID: 1500063}
+  turnSpeed: 110
   laserRange: 12
   shotCooldown: 0.25
   ballSpeed: 9
@@ -219,7 +220,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   beamSprite: {fileID: 21300000, guid: 0c39a1c955b648c7ae2c0b6dc02605b0, type: 3}
   thickness: 0.06
-  visibleTime: 0.08
+  flashTime: 0.08
+  aimColor: {r: 1, g: 0.4, b: 0.3, a: 0.3}
+  fireColor: {r: 1, g: 1, b: 1, a: 1}
   sortingOrder: 3
 --- !u!1 &1500011
 GameObject:
@@ -588,7 +591,7 @@ MonoBehaviour:
   spawner: {fileID: 1500053}
   startSize: 5.2
   ballSize: 0.8
-  startRings: 1
+  startRings: 3
   ringSpacing: 0.9
   secondsPerWave: 18
   loseSize: 1.6
@@ -821,6 +824,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ballWall: {fileID: 1500063}
+  restartDelay: 4
   waveTextSize: 26
   gameOverTextSize: 60
 --- !u!1 &330585543

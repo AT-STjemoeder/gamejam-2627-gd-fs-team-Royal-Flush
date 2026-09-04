@@ -1,15 +1,16 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 public class GameHud : MonoBehaviour
 {
     [SerializeField] private BallWall ballWall;
+    [SerializeField] private float restartDelay = 4f;
     [SerializeField] private int waveTextSize = 26;
     [SerializeField] private int gameOverTextSize = 60;
 
     private Text waveText;
     private Text gameOverText;
+    private float restartLeft;
 
     private void Start()
     {
@@ -36,15 +37,19 @@ public class GameHud : MonoBehaviour
         if (ballWall.IsGameOver)
         {
             waveText.text = "";
-            gameOverText.text = "GAME OVER\n\nPRESS ANY BUTTON TO PLAY AGAIN";
 
-            if (RestartPressed())
+            restartLeft -= Time.deltaTime;
+            gameOverText.text = "GAME OVER\n\n" + Mathf.CeilToInt(restartLeft);
+
+            if (restartLeft <= 0f)
             {
                 ballWall.Restart();
             }
 
             return;
         }
+
+        restartLeft = restartDelay;
 
         gameOverText.text = "";
 
@@ -56,26 +61,6 @@ public class GameHud : MonoBehaviour
         }
 
         waveText.text = "NEXT WAVE IN " + seconds;
-    }
-
-    private bool RestartPressed()
-    {
-        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
-        {
-            return true;
-        }
-
-        if (Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame)
-        {
-            return true;
-        }
-
-        if (Gamepad.current != null && Gamepad.current.startButton.wasPressedThisFrame)
-        {
-            return true;
-        }
-
-        return false;
     }
 
     private Text CreateText(Transform parent, string objectName, int size, TextAnchor anchor)
